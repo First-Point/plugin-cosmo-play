@@ -9,11 +9,11 @@ import {
     composeContext,
     generateObject,
     ModelClass,
-    Content,
 } from "@elizaos/core";
-import { cosmoProvider } from "../index";
+import { validateCosmoConfig } from "../environment";
+import { createCosmoService } from "../service/CosmoService";
 
-export interface CreateWalletContent extends Content {
+export interface CreateWalletContent {
     walletType?: string;
 }
 
@@ -50,6 +50,15 @@ export default {
     similes: ["NEW_WALLET", "GENERATE_WALLET", "CREATE_NEW_WALLET"],
     description:
         "MUST use this action if the user requests to create a new wallet.",
+    validate: async (runtime: IAgentRuntime) => {
+        try {
+            await validateCosmoConfig(runtime);
+            return true;
+        } catch (error) {
+            elizaLogger.error("Validation failed:", error);
+            return false;
+        }
+    },
     handler: async (
         runtime: IAgentRuntime,
         message: Memory,
@@ -59,41 +68,53 @@ export default {
     ) => {
         elizaLogger.log("Starting CREATE_WALLET handler...");
 
-        if (!state) {
-            state = (await runtime.composeState(message)) as State;
-        } else {
-            state = await runtime.updateRecentMessageState(state);
-        }
+        try {
+            const config = await validateCosmoConfig(runtime);
+            const cosmoService = createCosmoService(config);
 
-        const context = composeContext({
-            state,
-            template: createWalletTemplate,
-        });
+            if (!state) {
+                state = (await runtime.composeState(message)) as State;
+            } else {
+                state = await runtime.updateRecentMessageState(state);
+            }
 
-        const content = await generateObject({
-            runtime,
-            context,
-            modelClass: ModelClass.SMALL,
-        });
+            const context = composeContext({
+                state,
+                template: createWalletTemplate,
+            });
 
-        elizaLogger.debug("Create wallet content:", content);
+            const content = await generateObject({
+                runtime,
+                context,
+                modelClass: ModelClass.SMALL,
+            });
 
-        if (!isCreateWalletContent(runtime, content)) {
-            elizaLogger.error("Invalid content for CREATE_WALLET action.");
+            elizaLogger.debug("Create wallet content:", content);
+
+            if (!isCreateWalletContent(runtime, content)) {
+                elizaLogger.error("Invalid content for CREATE_WALLET action.");
+                callback?.({
+                    text: "Unable to process wallet creation request. Invalid content provided.",
+                    content: { error: "Invalid content" },
+                });
+                return false;
+            }
+
+            const response = await cosmoService.createWallet();
+            elizaLogger.success("Successfully created wallet");
             callback?.({
-                text: "Unable to process wallet creation request. Invalid content provided.",
-                content: { error: "Invalid content" },
+                text: `Created new wallet with address: ${response.wallet.address}`,
+                content: response,
+            });
+            return true;
+        } catch (error: any) {
+            elizaLogger.error("Error in CREATE_WALLET handler:", error);
+            callback?.({
+                text: `Error creating wallet: ${error.message}`,
+                content: { error: error.message },
             });
             return false;
         }
-
-        const response = await cosmoProvider.createWallet({ walletType: content.walletType });
-
-        callback?.({
-            text: `Created new wallet with address: ${response.wallet.address}`,
-            content: response,
-        });
-        return true;
     },
     examples: [
         [

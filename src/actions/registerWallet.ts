@@ -9,11 +9,11 @@ import {
     composeContext,
     generateObject,
     ModelClass,
-    Content,
 } from "@elizaos/core";
-import { cosmoProvider } from "../index";
+import { validateCosmoConfig } from "../environment";
+import { createCosmoService } from "../service/CosmoService";
 
-export interface RegisterWalletContent extends Content {
+export interface RegisterWalletContent {
     privateKey: string;
 }
 
@@ -48,6 +48,15 @@ export default {
     similes: ["IMPORT_WALLET", "ADD_WALLET", "REGISTER_EXISTING_WALLET"],
     description:
         "MUST use this action if the user requests to register or import an existing wallet using a private key.",
+    validate: async (runtime: IAgentRuntime) => {
+        try {
+            await validateCosmoConfig(runtime);
+            return true;
+        } catch (error) {
+            elizaLogger.error("Validation failed:", error);
+            return false;
+        }
+    },
     handler: async (
         runtime: IAgentRuntime,
         message: Memory,
@@ -57,41 +66,53 @@ export default {
     ) => {
         elizaLogger.log("Starting REGISTER_WALLET handler...");
 
-        if (!state) {
-            state = (await runtime.composeState(message)) as State;
-        } else {
-            state = await runtime.updateRecentMessageState(state);
-        }
+        try {
+            const config = await validateCosmoConfig(runtime);
+            const cosmoService = createCosmoService(config);
 
-        const context = composeContext({
-            state,
-            template: registerWalletTemplate,
-        });
+            if (!state) {
+                state = (await runtime.composeState(message)) as State;
+            } else {
+                state = await runtime.updateRecentMessageState(state);
+            }
 
-        const content = await generateObject({
-            runtime,
-            context,
-            modelClass: ModelClass.SMALL,
-        });
+            const context = composeContext({
+                state,
+                template: registerWalletTemplate,
+            });
 
-        elizaLogger.debug("Register wallet content:", content);
+            const content = await generateObject({
+                runtime,
+                context,
+                modelClass: ModelClass.SMALL,
+            });
 
-        if (!isRegisterWalletContent(runtime, content)) {
-            elizaLogger.error("Invalid content for REGISTER_WALLET action.");
+            elizaLogger.debug("Register wallet content:", content);
+
+            if (!isRegisterWalletContent(runtime, content)) {
+                elizaLogger.error("Invalid content for REGISTER_WALLET action.");
+                callback?.({
+                    text: "Unable to process wallet registration request. Invalid content provided.",
+                    content: { error: "Invalid content" },
+                });
+                return false;
+            }
+
+            const response = await cosmoService.registerWallet(content.privateKey);
+            elizaLogger.success("Successfully registered wallet");
             callback?.({
-                text: "Unable to process wallet registration request. Invalid content provided.",
-                content: { error: "Invalid content" },
+                text: `Successfully registered wallet with address: ${response.wallet.address}`,
+                content: response,
+            });
+            return true;
+        } catch (error: any) {
+            elizaLogger.error("Error in REGISTER_WALLET handler:", error);
+            callback?.({
+                text: `Error registering wallet: ${error.message}`,
+                content: { error: error.message },
             });
             return false;
         }
-
-        const response = await cosmoProvider.registerWallet(content.privateKey);
-
-        callback?.({
-            text: `Successfully registered wallet with address: ${response.wallet.address}`,
-            content: response,
-        });
-        return true;
     },
     examples: [
         [

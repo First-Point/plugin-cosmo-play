@@ -9,11 +9,11 @@ import {
     composeContext,
     generateObject,
     ModelClass,
-    Content,
 } from "@elizaos/core";
-import { cosmoProvider } from "../index";
+import { validateCosmoConfig } from "../environment";
+import { createCosmoService } from "../service/CosmoService";
 
-export interface GetWalletDetailsContent extends Content {
+export interface GetWalletDetailsContent {
     address: string;
 }
 
@@ -48,6 +48,15 @@ export default {
     similes: ["WALLET_INFO", "CHECK_WALLET", "VIEW_WALLET"],
     description:
         "MUST use this action if the user requests to view wallet details or information.",
+    validate: async (runtime: IAgentRuntime) => {
+        try {
+            await validateCosmoConfig(runtime);
+            return true;
+        } catch (error) {
+            elizaLogger.error("Validation failed:", error);
+            return false;
+        }
+    },
     handler: async (
         runtime: IAgentRuntime,
         message: Memory,
@@ -57,41 +66,53 @@ export default {
     ) => {
         elizaLogger.log("Starting GET_WALLET_DETAILS handler...");
 
-        if (!state) {
-            state = (await runtime.composeState(message)) as State;
-        } else {
-            state = await runtime.updateRecentMessageState(state);
-        }
+        try {
+            const config = await validateCosmoConfig(runtime);
+            const cosmoService = createCosmoService(config);
 
-        const context = composeContext({
-            state,
-            template: getWalletDetailsTemplate,
-        });
+            if (!state) {
+                state = (await runtime.composeState(message)) as State;
+            } else {
+                state = await runtime.updateRecentMessageState(state);
+            }
 
-        const content = await generateObject({
-            runtime,
-            context,
-            modelClass: ModelClass.SMALL,
-        });
+            const context = composeContext({
+                state,
+                template: getWalletDetailsTemplate,
+            });
 
-        elizaLogger.debug("Get wallet details content:", content);
+            const content = await generateObject({
+                runtime,
+                context,
+                modelClass: ModelClass.SMALL,
+            });
 
-        if (!isGetWalletDetailsContent(runtime, content)) {
-            elizaLogger.error("Invalid content for GET_WALLET_DETAILS action.");
+            elizaLogger.debug("Get wallet details content:", content);
+
+            if (!isGetWalletDetailsContent(runtime, content)) {
+                elizaLogger.error("Invalid content for GET_WALLET_DETAILS action.");
+                callback?.({
+                    text: "Unable to process wallet details request. Invalid content provided.",
+                    content: { error: "Invalid content" },
+                });
+                return false;
+            }
+
+            const response = await cosmoService.getWalletDetails(content.address);
+            elizaLogger.success("Successfully fetched wallet details");
             callback?.({
-                text: "Unable to process wallet details request. Invalid content provided.",
-                content: { error: "Invalid content" },
+                text: `Wallet Details for ${content.address}:\nBalance: ${response.wallet.balance}\nPublic Key: ${response.wallet.publicKey}`,
+                content: response,
+            });
+            return true;
+        } catch (error: any) {
+            elizaLogger.error("Error in GET_WALLET_DETAILS handler:", error);
+            callback?.({
+                text: `Error fetching wallet details: ${error.message}`,
+                content: { error: error.message },
             });
             return false;
         }
-
-        const response = await cosmoProvider.getWalletDetails(content.address);
-
-        callback?.({
-            text: `Wallet Details for ${content.address}:\nBalance: ${response.wallet.balance}\nPublic Key: ${response.wallet.publicKey}`,
-            content: response,
-        });
-        return true;
     },
     examples: [
         [
