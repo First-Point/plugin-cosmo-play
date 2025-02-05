@@ -1,14 +1,14 @@
 {
-  "extends": "../core/tsconfig.json",
-  "compilerOptions": {
-      "outDir": "dist",
-      "rootDir": "src",
-      "lib": ["ES2015"],
-      "types": [
-          "node"
-      ]
-  },
-  "include": [
-      "src/**/*.ts"
-  ]
+    "extends": "../core/tsconfig.json",
+    "compilerOptions": {
+        "outDir": "dist",
+        "rootDir": "src",
+        "lib": ["ES2015", "ES2017", "DOM"],
+        "types": [
+            "node"
+        ]
+    },
+    "include": [
+        "src/**/*.ts"
+    ]
 }
