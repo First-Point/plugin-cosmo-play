@@ -12,7 +12,7 @@ import {
 } from "@elizaos/core";
 import { validateCosmoConfig } from "../../environment";
 import { createCosmoService } from "../../service/CosmoService";
-import { ListingsResponse, FarmlandListingItem } from "../../types";
+import { MarketListingsResponse, FarmlandListingItem } from "../../types";
 
 export interface GetFarmlandListingsContent {
     page?: number;
@@ -67,7 +67,23 @@ Respond with a JSON markdown block containing only the extracted values.`;
 
 export default {
     name: "GET_FARMLAND_LISTINGS",
-    similes: ["FARMLAND_MARKET", "FARMLAND_LISTINGS", "FARMLAND_FOR_SALE"],
+    similes: [
+        "FARMLAND_MARKET",
+        "FARMLAND_LISTINGS",
+        "FARMLAND_FOR_SALE",
+        "SHOW_FARMLAND",
+        "LIST_FARMLAND",
+        "FIND_FARMLAND",
+        "FARMLAND_LIST",
+        "FARMLAND_SALES",
+        "FARMLAND_MARKETPLACE",
+        "VIEW_FARMLAND",
+        "CHECK_FARMLAND",
+        "SEARCH_FARMLAND",
+        "LAND_MARKET",
+        "LAND_LIST",
+        "LAND_FOR_SALE"
+    ],
     description:
         "MUST use this action if the user requests to view Farmland market listings.",
     validate: async (runtime: IAgentRuntime) => {
@@ -113,7 +129,7 @@ export default {
 
             if (!isGetFarmlandListingsContent(runtime, content)) {
                 elizaLogger.error("Invalid content for GET_FARMLAND_LISTINGS action.");
-                callback?.({
+                callback({
                     text: "Unable to process farmland listings request. Invalid content provided.",
                     content: { error: "Invalid content" },
                 });
@@ -127,7 +143,7 @@ export default {
                 filter: {
                     ...(content.filter?.forSale !== undefined && { forSale: content.filter.forSale })
                 }
-            }) as ListingsResponse<FarmlandListingItem>;
+            }) as MarketListingsResponse<FarmlandListingItem>;
             elizaLogger.success("Successfully retrieved farmland listings");
 
             const listingsText = response.data
@@ -146,14 +162,14 @@ export default {
                 `Status: ${content.filter?.forSale ? 'For Sale Only' : 'All Listings'}`
             ].join('\n');
 
-            callback?.({
+            callback({
                 text: `Farmland Listings:\n${filterInfo}\n\n${listingsText}`,
                 content: response,
             });
             return true;
         } catch (error: any) {
             elizaLogger.error("Error in GET_FARMLAND_LISTINGS handler:", error);
-            callback?.({
+            callback({
                 text: `Error getting farmland listings: ${error.message}`,
                 content: { error: error.message },
             });
@@ -167,32 +183,15 @@ export default {
                 content: {
                     text: "Show me farmland listings",
                 },
-            },
-            {
-                user: "{{user2}}",
-                content: {
-                    action: "GET_FARMLAND_LISTINGS",
-                },
-            },
+            }
         ],
         [
             {
                 user: "{{user1}}",
                 content: {
-                    text: "List farmlands for sale sorted by price",
+                    text: "List big farmlands for sale sorted by price",
                 },
-            },
-            {
-                user: "{{user2}}",
-                content: {
-                    action: "GET_FARMLAND_LISTINGS",
-                    sortDesc: "price",
-                    filter: {
-                        size: "small",
-                        forSale: true,
-                    },
-                },
-            },
+            }
         ],
     ] as ActionExample[][],
 } as Action; 

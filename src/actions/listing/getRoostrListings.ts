@@ -12,7 +12,7 @@ import {
 } from "@elizaos/core";
 import { validateCosmoConfig } from "../../environment";
 import { createCosmoService } from "../../service/CosmoService";
-import { ListingsResponse, RoostrListingItem } from "../../types";
+import { MarketListingsResponse, RoostrListingItem } from "../../types";
 
 export interface GetRoostrListingsContent {
     page?: number;
@@ -68,7 +68,20 @@ Respond with a JSON markdown block containing only the extracted values.`;
 
 export default {
     name: "GET_ROOSTR_LISTINGS",
-    similes: ["ROOSTR_MARKET", "ROOSTR_LISTINGS", "ROOSTR_FOR_SALE"],
+    similes: [
+        "ROOSTR_MARKET",
+        "ROOSTR_LISTINGS",
+        "ROOSTR_FOR_SALE",
+        "SHOW_ROOSTR",
+        "LIST_ROOSTR",
+        "FIND_ROOSTR",
+        "ROOSTR_LIST",
+        "ROOSTR_SALES",
+        "ROOSTR_MARKETPLACE",
+        "VIEW_ROOSTR",
+        "CHECK_ROOSTR",
+        "SEARCH_ROOSTR"
+    ],
     description:
         "MUST use this action if the user requests to view Roostr market listings.",
     validate: async (runtime: IAgentRuntime) => {
@@ -114,7 +127,7 @@ export default {
 
             if (!isGetRoostrListingsContent(runtime, content)) {
                 elizaLogger.error("Invalid content for GET_ROOSTR_LISTINGS action.");
-                callback?.({
+                callback({
                     text: "Unable to process roostr listings request. Invalid content provided.",
                     content: { error: "Invalid content" },
                 });
@@ -129,7 +142,7 @@ export default {
                     ...(content.filter?.rarity && { rarity: content.filter.rarity }),
                     ...(content.filter?.forSale !== undefined && { forSale: content.filter.forSale })
                 }
-            }) as ListingsResponse<RoostrListingItem>;
+            }) as MarketListingsResponse<RoostrListingItem>;
             elizaLogger.success("Successfully retrieved roostr listings");
 
             const listingsText = response.data
@@ -142,14 +155,14 @@ export default {
                 `Status: ${content.filter?.forSale ? 'For Sale Only' : 'All Listings'}`
             ].join('\n');
 
-            callback?.({
+            callback({
                 text: `Roostr Listings:\n${filterInfo}\n\n${listingsText}`,
                 content: response,
             });
             return true;
         } catch (error: any) {
             elizaLogger.error("Error in GET_ROOSTR_LISTINGS handler:", error);
-            callback?.({
+            callback({
                 text: `Error getting roostr listings: ${error.message}`,
                 content: { error: error.message },
             });
@@ -163,13 +176,7 @@ export default {
                 content: {
                     text: "Show me roostr listings",
                 },
-            },
-            {
-                user: "{{user2}}",
-                content: {
-                    action: "GET_ROOSTR_LISTINGS",
-                },
-            },
+            }
         ],
         [
             {
@@ -177,18 +184,7 @@ export default {
                 content: {
                     text: "List common roostrs for sale sorted by price",
                 },
-            },
-            {
-                user: "{{user2}}",
-                content: {
-                    action: "GET_ROOSTR_LISTINGS",
-                    sortDesc: "price",
-                    filter: {
-                        rarity: "common",
-                        forSale: true,
-                    },
-                },
-            },
+            }
         ],
     ] as ActionExample[][],
 } as Action; 

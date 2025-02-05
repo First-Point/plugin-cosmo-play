@@ -479,34 +479,13 @@ export interface ListingInfo {
     updatedAt: string;
 }
 
-export interface RoostrListingItem {
-    token: string;
-    name: string;
-    salePrice: number;
+export interface ListingItem {
     rarity: string;
     owner: string;
 }
 
-export interface BlueprintListingItem {
-    name: string;
-    salePrice: number;
-    rarity: string;
-    owner: string;
-}
-
-export interface FarmlandListingItem {
-    token: string;
-    rarity: string;
-    bigness: string;
-    salePrice: number;
-    wormInLand: number;
-    size: string;
-    name: string;
-    owner: string;
-}
-
-export interface ListingsResponse<T = RoostrListingItem | BlueprintListingItem | FarmlandListingItem> extends BaseResponse {
-    data: T[];
+export interface ListingsResponse extends BaseResponse {
+    data: ListingItem[];
     pagination: Record<string, any>;
 }
 
@@ -567,5 +546,41 @@ export interface BlueprintPriceResponse extends BaseResponse {
         timestamp: string;
         network: string;
         source: string;
+    };
+}
+
+export interface RoostrListingItem {
+    token: string;
+    name: string;
+    salePrice: number;
+    rarity: string;
+    owner: string;
+}
+
+export interface BlueprintListingItem {
+    name: string;
+    salePrice: number;
+    rarity: string;
+    owner: string;
+}
+
+export interface FarmlandListingItem {
+    token: string;
+    name: string;
+    salePrice: number;
+    rarity: string;
+    size: string;
+    bigness: string;
+    wormInLand: number;
+    owner: string;
+}
+
+export interface MarketListingsResponse<T = RoostrListingItem | BlueprintListingItem | FarmlandListingItem> extends BaseResponse {
+    data: T[];
+    pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        pages: number;
     };
 } 

@@ -2,7 +2,7 @@ import { ModelProviderName } from "@elizaos/core";
 import { cosmoPlayPlugin } from "@elizaos/plugin-cosmo-play";
 
 export const mainCharacter = {
-    name: "cosmoPlay",
+    name: "cosmo-play",
     clients: [],
     modelProvider: ModelProviderName.GOOGLE,
     plugins: [cosmoPlayPlugin],

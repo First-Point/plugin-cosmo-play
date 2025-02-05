@@ -87,7 +87,7 @@ export default {
 
             if (!isGetFarmlandFloorsContent(runtime, content)) {
                 elizaLogger.error("Invalid content for GET_FARMLAND_FLOORS action.");
-                callback?.({
+                callback({
                     text: "Unable to process farmland floors request. Invalid content provided.",
                     content: { error: "Invalid content" },
                 });
@@ -98,7 +98,7 @@ export default {
             elizaLogger.success("Successfully retrieved farmland floors");
 
             if (!response.success) {
-                callback?.({
+                callback({
                     text: "Failed to retrieve farmland floors.",
                     content: { error: "API request failed" },
                 });
@@ -118,14 +118,14 @@ export default {
                 `Infinite: ${data.infinite} AVAX`
             ].join('\n');
 
-            callback?.({
+            callback({
                 text: floorText,
                 content: response,
             });
             return true;
         } catch (error: any) {
             elizaLogger.error("Error in GET_FARMLAND_FLOORS handler:", error);
-            callback?.({
+            callback({
                 text: `Error getting farmland floors: ${error.message}`,
                 content: { error: error.message },
             });

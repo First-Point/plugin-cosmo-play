@@ -148,7 +148,7 @@ export default {
 
             if (!isGetItemsListContent(runtime, content)) {
                 elizaLogger.error("Invalid content for GET_ITEMS_LIST action.");
-                callback?.({
+                callback({
                     text: "Unable to process items list request. Invalid content provided.",
                     content: { error: "Invalid content" },
                 });
@@ -168,7 +168,7 @@ export default {
             elizaLogger.success("Successfully retrieved items list");
 
             if (!response.success) {
-                callback?.({
+                callback({
                     text: "Failed to retrieve items list.",
                     content: { error: "API request failed" },
                 });
@@ -188,14 +188,14 @@ export default {
                 ? "\nTo see more items, ask to go to the next page or increase the limit."
                 : "";
 
-            callback?.({
+            callback({
                 text: `Items List:${itemsListText}\n${paginationInfo}${navigationHelp}`,
                 content: response,
             });
             return true;
         } catch (error: any) {
             elizaLogger.error("Error in GET_ITEMS_LIST handler:", error);
-            callback?.({
+            callback({
                 text: `Error getting items list: ${error.message}`,
                 content: { error: error.message },
             });

@@ -5,6 +5,7 @@ import { default as getBlueprintFloors } from './floors/getBlueprintFloors';
 import { default as getRoostrListings } from './listing/getRoostrListings';
 import { default as getFarmlandListings } from './listing/getFarmlandListings';
 import { default as getBlueprintListings } from './listing/getBlueprintListings';
+import { Action } from "@elizaos/core";
 
 export default [
     getItemsList,
@@ -14,7 +15,7 @@ export default [
     getRoostrListings,
     getFarmlandListings,
     getBlueprintListings,
-];
+] as Action[];
 
 export * from './item/getItemsList';
 export * from './floors/getRoostrFloors';

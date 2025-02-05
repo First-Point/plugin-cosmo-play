@@ -87,7 +87,7 @@ export default {
 
             if (!isGetBlueprintFloorsContent(runtime, content)) {
                 elizaLogger.error("Invalid content for GET_BLUEPRINT_FLOORS action.");
-                callback?.({
+                callback({
                     text: "Unable to process blueprint floors request. Invalid content provided.",
                     content: { error: "Invalid content" },
                 });
@@ -98,7 +98,7 @@ export default {
             elizaLogger.success("Successfully retrieved blueprint floors");
 
             if (!response.success) {
-                callback?.({
+                callback({
                     text: "Failed to retrieve blueprint floors.",
                     content: { error: "API request failed" },
                 });
@@ -117,14 +117,14 @@ export default {
                 `Secret: ${data.secret} AVAX`
             ].join('\n');
 
-            callback?.({
+            callback({
                 text: floorText,
                 content: response,
             });
             return true;
         } catch (error: any) {
             elizaLogger.error("Error in GET_BLUEPRINT_FLOORS handler:", error);
-            callback?.({
+            callback({
                 text: `Error getting blueprint floors: ${error.message}`,
                 content: { error: error.message },
             });

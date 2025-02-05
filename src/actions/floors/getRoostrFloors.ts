@@ -86,7 +86,7 @@ export default {
 
             if (!isGetRoostrFloorsContent(runtime, content)) {
                 elizaLogger.error("Invalid content for GET_ROOSTR_FLOORS action.");
-                callback?.({
+                callback({
                     text: "Unable to process roostr floors request. Invalid content provided.",
                     content: { error: "Invalid content" },
                 });
@@ -97,7 +97,7 @@ export default {
             elizaLogger.success("Successfully retrieved roostr floors");
 
             if (!response.success) {
-                callback?.({
+                callback({
                     text: "Failed to retrieve roostr floors.",
                     content: { error: "API request failed" },
                 });
@@ -118,14 +118,14 @@ export default {
                 `Unique: ${data.unique} ${data.currency}`
             ].join('\n');
 
-            callback?.({
+            callback({
                 text: floorText,
                 content: response,
             });
             return true;
         } catch (error: any) {
             elizaLogger.error("Error in GET_ROOSTR_FLOORS handler:", error);
-            callback?.({
+            callback({
                 text: `Error getting roostr floors: ${error.message}`,
                 content: { error: error.message },
             });
@@ -139,13 +139,7 @@ export default {
                 content: {
                     text: "What are the roostr floor prices?",
                 },
-            },
-            {
-                user: "{{user2}}",
-                content: {
-                    action: "GET_ROOSTR_FLOORS",
-                },
-            },
+            }
         ],
         [
             {
@@ -153,13 +147,7 @@ export default {
                 content: {
                     text: "Show me current roostr prices",
                 },
-            },
-            {
-                user: "{{user2}}",
-                content: {
-                    action: "GET_ROOSTR_FLOORS",
-                },
-            },
+            }
         ],
     ] as ActionExample[][],
 } as Action; 

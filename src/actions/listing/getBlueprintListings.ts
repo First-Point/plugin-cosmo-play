@@ -12,7 +12,7 @@ import {
 } from "@elizaos/core";
 import { validateCosmoConfig } from "../../environment";
 import { createCosmoService } from "../../service/CosmoService";
-import { ListingsResponse, BlueprintListingItem } from "../../types";
+import { MarketListingsResponse, BlueprintListingItem } from "../../types";
 
 export interface GetBlueprintListingsContent {
     page?: number;
@@ -68,7 +68,20 @@ Respond with a JSON markdown block containing only the extracted values.`;
 
 export default {
     name: "GET_BLUEPRINT_LISTINGS",
-    similes: ["BLUEPRINT_MARKET", "BLUEPRINT_LISTINGS", "BLUEPRINT_FOR_SALE"],
+    similes: [
+        "BLUEPRINT_MARKET",
+        "BLUEPRINT_LISTINGS",
+        "BLUEPRINT_FOR_SALE",
+        "SHOW_BLUEPRINT",
+        "LIST_BLUEPRINT",
+        "FIND_BLUEPRINT",
+        "BLUEPRINT_LIST",
+        "BLUEPRINT_SALES",
+        "BLUEPRINT_MARKETPLACE",
+        "VIEW_BLUEPRINT",
+        "CHECK_BLUEPRINT",
+        "SEARCH_BLUEPRINT"
+    ],
     description:
         "MUST use this action if the user requests to view Blueprint market listings.",
     validate: async (runtime: IAgentRuntime) => {
@@ -114,7 +127,7 @@ export default {
 
             if (!isGetBlueprintListingsContent(runtime, content)) {
                 elizaLogger.error("Invalid content for GET_BLUEPRINT_LISTINGS action.");
-                callback?.({
+                callback({
                     text: "Unable to process blueprint listings request. Invalid content provided.",
                     content: { error: "Invalid content" },
                 });
@@ -129,7 +142,7 @@ export default {
                     ...(content.filter?.rarity && { rarity: content.filter.rarity }),
                     ...(content.filter?.forSale !== undefined && { forSale: content.filter.forSale })
                 }
-            }) as ListingsResponse<BlueprintListingItem>;
+            }) as MarketListingsResponse<BlueprintListingItem>;
             elizaLogger.success("Successfully retrieved blueprint listings");
 
             const listingsText = response.data
@@ -142,14 +155,14 @@ export default {
                 `Status: ${content.filter?.forSale ? 'For Sale Only' : 'All Listings'}`
             ].join('\n');
 
-            callback?.({
+            callback({
                 text: `Blueprint Listings:\n${filterInfo}\n\n${listingsText}`,
                 content: response,
             });
             return true;
         } catch (error: any) {
             elizaLogger.error("Error in GET_BLUEPRINT_LISTINGS handler:", error);
-            callback?.({
+            callback({
                 text: `Error getting blueprint listings: ${error.message}`,
                 content: { error: error.message },
             });
@@ -163,13 +176,7 @@ export default {
                 content: {
                     text: "Show me blueprint listings",
                 },
-            },
-            {
-                user: "{{user2}}",
-                content: {
-                    action: "GET_BLUEPRINT_LISTINGS",
-                },
-            },
+            }
         ],
         [
             {
@@ -177,18 +184,7 @@ export default {
                 content: {
                     text: "List common blueprints for sale sorted by price",
                 },
-            },
-            {
-                user: "{{user2}}",
-                content: {
-                    action: "GET_BLUEPRINT_LISTINGS",
-                    sortDesc: "price",
-                    filter: {
-                        rarity: "common",
-                        forSale: true,
-                    },
-                },
-            },
+            }
         ],
     ] as ActionExample[][],
 } as Action; 
