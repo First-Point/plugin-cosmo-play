@@ -7,21 +7,11 @@ import {
     HandlerCallback,
     elizaLogger,
     composeContext,
-    generateObject,
-    ModelClass,
 } from "@elizaos/core";
 import { validateCosmoConfig } from "../../environment";
 import { createCosmoService } from "../../service/CosmoService";
+import { RoostrFloorResponse } from "../../types";
 
-export interface GetRoostrFloorsContent {}
-
-function isGetRoostrFloorsContent(
-    runtime: IAgentRuntime,
-    content: any
-): content is GetRoostrFloorsContent {
-    elizaLogger.debug("Content for get roostr floors", content);
-    return true; // No content needed for this action
-}
 
 const getRoostrFloorsTemplate = `Respond with a JSON markdown block containing only the extracted values.
 
@@ -76,24 +66,7 @@ export default {
                 template: getRoostrFloorsTemplate,
             });
 
-            const content = await generateObject({
-                runtime,
-                context,
-                modelClass: ModelClass.SMALL,
-            });
-
-            elizaLogger.debug("Get roostr floors content:", content);
-
-            if (!isGetRoostrFloorsContent(runtime, content)) {
-                elizaLogger.error("Invalid content for GET_ROOSTR_FLOORS action.");
-                callback({
-                    text: "Unable to process roostr floors request. Invalid content provided.",
-                    content: { error: "Invalid content" },
-                });
-                return false;
-            }
-
-            const response = await cosmoService.getRoostrPrices();
+            const response = await cosmoService.getFloors<RoostrFloorResponse>('roostr');
             elizaLogger.success("Successfully retrieved roostr floors");
 
             if (!response.success) {

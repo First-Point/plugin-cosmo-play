@@ -7,22 +7,10 @@ import {
     HandlerCallback,
     elizaLogger,
     composeContext,
-    generateObject,
-    ModelClass,
 } from "@elizaos/core";
 import { validateCosmoConfig } from "../../environment";
 import { createCosmoService } from "../../service/CosmoService";
-import { FarmlandPriceResponse } from "../../types";
-
-export interface GetFarmlandFloorsContent {}
-
-function isGetFarmlandFloorsContent(
-    runtime: IAgentRuntime,
-    content: any
-): content is GetFarmlandFloorsContent {
-    elizaLogger.debug("Content for get farmland floors", content);
-    return true; // No content needed for this action
-}
+import { FarmlandFloorResponse } from "../../types";
 
 const getFarmlandFloorsTemplate = `Respond with a JSON markdown block containing only the extracted values.
 
@@ -77,24 +65,7 @@ export default {
                 template: getFarmlandFloorsTemplate,
             });
 
-            const content = await generateObject({
-                runtime,
-                context,
-                modelClass: ModelClass.SMALL,
-            });
-
-            elizaLogger.debug("Get farmland floors content:", content);
-
-            if (!isGetFarmlandFloorsContent(runtime, content)) {
-                elizaLogger.error("Invalid content for GET_FARMLAND_FLOORS action.");
-                callback({
-                    text: "Unable to process farmland floors request. Invalid content provided.",
-                    content: { error: "Invalid content" },
-                });
-                return false;
-            }
-
-            const response = await cosmoService.getFarmlandPrices();
+            const response = await cosmoService.getFloors<FarmlandFloorResponse>('farmland');
             elizaLogger.success("Successfully retrieved farmland floors");
 
             if (!response.success) {

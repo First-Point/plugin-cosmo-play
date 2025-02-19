@@ -13,6 +13,7 @@ import {
 import { validateCosmoConfig } from "../../environment";
 import { createCosmoService } from "../../service/CosmoService";
 import { MarketListingsResponse, RoostrListingItem } from "../../types";
+import { z } from "zod";
 
 export interface GetRoostrListingsContent {
     page?: number;
@@ -24,17 +25,32 @@ export interface GetRoostrListingsContent {
     };
 }
 
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 16;
+const MAX_LIMIT = 100;
+
+const getRoostrListingsSchema = z.object({
+    page: z.number().min(1).optional(),
+    limit: z.number().min(1).max(MAX_LIMIT).optional(),
+    sortDesc: z.enum(['price', 'date']).optional(),
+    filter: z.object({
+        rarity: z.enum(['common', 'nice', 'rare', 'elite', 'legendary', 'unique']).optional(),
+        forSale: z.boolean().optional()
+    }).optional()
+});
+
 function isGetRoostrListingsContent(
     runtime: IAgentRuntime,
     content: any
 ): content is GetRoostrListingsContent {
     elizaLogger.debug("Content for get roostr listings", content);
-    return (
-        (content.page === undefined || typeof content.page === "number") &&
-        (content.limit === undefined || typeof content.limit === "number") &&
-        (content.sortDesc === undefined || typeof content.sortDesc === "string") &&
-        (content.filter === undefined || typeof content.filter === "object")
-    );
+    try {
+        getRoostrListingsSchema.parse(content);
+        return true;
+    } catch (error) {
+        elizaLogger.error("Invalid roostr listings content:", error);
+        return false;
+    }
 }
 
 const getRoostrListingsTemplate = `Respond with a JSON markdown block containing only the extracted values.
@@ -121,11 +137,20 @@ export default {
                 runtime,
                 context,
                 modelClass: ModelClass.SMALL,
-            });
+                schema: getRoostrListingsSchema
+            }) as { object: GetRoostrListingsContent };
 
-            elizaLogger.debug("Get roostr listings content:", content);
+            // Apply defaults
+            const requestContent = {
+                page: content.object?.page || DEFAULT_PAGE,
+                limit: Math.min(content.object?.limit || DEFAULT_LIMIT, MAX_LIMIT),
+                sortDesc: content.object?.sortDesc,
+                filter: content.object?.filter
+            };
 
-            if (!isGetRoostrListingsContent(runtime, content)) {
+            elizaLogger.debug("Get roostr listings content:", requestContent);
+
+            if (!isGetRoostrListingsContent(runtime, requestContent)) {
                 elizaLogger.error("Invalid content for GET_ROOSTR_LISTINGS action.");
                 callback({
                     text: "Unable to process roostr listings request. Invalid content provided.",
@@ -135,12 +160,12 @@ export default {
             }
 
             const response = await cosmoService.getListings('roostr', {
-                page: content.page,
-                limit: content.limit,
-                sortDesc: content.sortDesc,
+                page: requestContent.page,
+                limit: requestContent.limit,
+                sortDesc: requestContent.sortDesc,
                 filter: {
-                    ...(content.filter?.rarity && { rarity: content.filter.rarity }),
-                    ...(content.filter?.forSale !== undefined && { forSale: content.filter.forSale })
+                    ...(requestContent.filter?.rarity && { rarity: requestContent.filter.rarity }),
+                    ...(requestContent.filter?.forSale !== undefined && { forSale: requestContent.filter.forSale })
                 }
             }) as MarketListingsResponse<RoostrListingItem>;
             elizaLogger.success("Successfully retrieved roostr listings");
@@ -151,8 +176,8 @@ export default {
 
             const filterInfo = [
                 'Filters:',
-                content.filter?.rarity ? `Rarity: ${content.filter.rarity}` : 'All Rarities',
-                `Status: ${content.filter?.forSale ? 'For Sale Only' : 'All Listings'}`
+                requestContent.filter?.rarity ? `Rarity: ${requestContent.filter.rarity}` : 'All Rarities',
+                `Status: ${requestContent.filter?.forSale ? 'For Sale Only' : 'All Listings'}`
             ].join('\n');
 
             callback({

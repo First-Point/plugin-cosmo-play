@@ -13,6 +13,7 @@ import {
 import { validateCosmoConfig } from "../../environment";
 import { createCosmoService } from "../../service/CosmoService";
 import { ItemListResponse } from "../../types";
+import { z } from "zod";
 
 export interface GetItemsListContent {
     page?: number;
@@ -77,11 +78,28 @@ const getItemsListTemplate = `Respond with a JSON markdown block containing only
 Example response for getting items list:
 \`\`\`json
 {
-    "page": 1,
-    "limit": 16,
-    "type": "equipables",
-    "rarity": "common",
-    "forSale": true
+    "data": [
+        {
+            "name": "Wooden Sword",
+            "type": "equipables", 
+            "rarity": "common",
+            "owner": "0x123...",
+            "forSale": true,
+            "price": 1.5
+        },
+        {
+            "name": "Magic Staff",
+            "type": "equipables",
+            "rarity": "rare", 
+            "owner": "0x456...",
+            "forSale": false
+        }
+    ],
+    "pagination": {
+        "total": 156,
+        "page": 1,
+        "limit": 16
+    }
 }
 \`\`\`
 
@@ -99,6 +117,14 @@ Given the recent messages, extract the following information about the items lis
 Note: If the user asks to "show more", increase the limit up to 100 or go to the next page.
 
 Respond with a JSON markdown block containing only the extracted values.`;
+
+const getItemsListSchema = z.object({
+    page: z.number().min(1).optional(),
+    limit: z.number().min(1).max(MAX_LIMIT).optional(),
+    type: z.enum(['equipables', 'collectibles']).optional(),
+    rarity: z.enum(['common', 'rare', 'legendary', 'secret']).optional(),
+    forSale: z.boolean().optional()
+});
 
 export default {
     name: "GET_ITEMS_LIST",
@@ -121,7 +147,7 @@ export default {
         options: { [key: string]: unknown },
         callback?: HandlerCallback
     ) => {
-        elizaLogger.log("Starting GET_ITEMS_LIST handler...");
+        elizaLogger.info("Starting GET_ITEMS_LIST handler...");
 
         try {
             const config = await validateCosmoConfig(runtime);
@@ -142,9 +168,8 @@ export default {
                 runtime,
                 context,
                 modelClass: ModelClass.SMALL,
-            });
-
-            elizaLogger.debug("Get items list content:", content);
+                schema: getItemsListSchema
+            }) as { object: GetItemsListContent };
 
             if (!isGetItemsListContent(runtime, content)) {
                 elizaLogger.error("Invalid content for GET_ITEMS_LIST action.");
@@ -157,25 +182,27 @@ export default {
 
             // Apply defaults and constraints
             const requestContent = {
-                page: content.page || DEFAULT_PAGE,
-                limit: Math.min(content.limit || DEFAULT_LIMIT, MAX_LIMIT),
-                type: content.type,
-                rarity: content.rarity,
-                forSale: content.forSale,
+                page: content.object?.page || DEFAULT_PAGE,
+                limit: Math.min(content.object?.limit || DEFAULT_LIMIT, MAX_LIMIT),
+                type: content.object?.type,
+                rarity: content.object?.rarity,
+                forSale: content.object?.forSale,
             };
 
-            const response = await cosmoService.getItemsList(requestContent);
-            elizaLogger.success("Successfully retrieved items list");
+            elizaLogger.info(requestContent)
 
-            if (!response.success) {
+            const response: ItemListResponse = await cosmoService.getItemsList(requestContent);
+            elizaLogger.info("Successfully retrieved items list");
+
+            if (!response.success || !response.data) {
                 callback({
-                    text: "Failed to retrieve items list.",
-                    content: { error: "API request failed" },
+                    text: "Failed to retrieve items list. No items data available.",
+                    content: { error: "Invalid response data" },
                 });
                 return false;
             }
 
-            const itemsListText = response.data.items
+            const itemsListText = response.data
                 .map(item => {
                     const priceInfo = item.price ? ` - ${item.price} AVAX` : '';
                     const saleStatus = item.forSale ? ' (For Sale)' : '';
@@ -183,13 +210,9 @@ export default {
                 })
                 .join('\n');
 
-            const paginationInfo = `\nPage ${response.data.pagination.page} (Total items: ${response.data.pagination.total})`;
-            const navigationHelp = response.data.pagination.page < Math.ceil(response.data.pagination.total / requestContent.limit) 
-                ? "\nTo see more items, ask to go to the next page or increase the limit."
-                : "";
 
             callback({
-                text: `Items List:${itemsListText}\n${paginationInfo}${navigationHelp}`,
+                text: `Items List:${itemsListText}`,
                 content: response,
             });
             return true;

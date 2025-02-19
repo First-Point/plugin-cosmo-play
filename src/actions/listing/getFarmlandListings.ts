@@ -13,6 +13,7 @@ import {
 import { validateCosmoConfig } from "../../environment";
 import { createCosmoService } from "../../service/CosmoService";
 import { MarketListingsResponse, FarmlandListingItem } from "../../types";
+import { z } from "zod";
 
 export interface GetFarmlandListingsContent {
     page?: number;
@@ -24,17 +25,32 @@ export interface GetFarmlandListingsContent {
     };
 }
 
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 16;
+const MAX_LIMIT = 100;
+
+const getFarmlandListingsSchema = z.object({
+    page: z.number().min(1).optional(),
+    limit: z.number().min(1).max(MAX_LIMIT).optional(),
+    sortDesc: z.enum(['price', 'date']).optional(),
+    filter: z.object({
+        size: z.enum(['humble', 'big', 'vast', 'massive', 'infinite']).optional(),
+        forSale: z.boolean().optional()
+    }).optional()
+});
+
 function isGetFarmlandListingsContent(
     runtime: IAgentRuntime,
     content: any
 ): content is GetFarmlandListingsContent {
     elizaLogger.debug("Content for get farmland listings", content);
-    return (
-        (content.page === undefined || typeof content.page === "number") &&
-        (content.limit === undefined || typeof content.limit === "number") &&
-        (content.sortDesc === undefined || typeof content.sortDesc === "string") &&
-        (content.filter === undefined || typeof content.filter === "object")
-    );
+    try {
+        getFarmlandListingsSchema.parse(content);
+        return true;
+    } catch (error) {
+        elizaLogger.error("Invalid farmland listings content:", error);
+        return false;
+    }
 }
 
 const getFarmlandListingsTemplate = `Respond with a JSON markdown block containing only the extracted values.
@@ -123,11 +139,20 @@ export default {
                 runtime,
                 context,
                 modelClass: ModelClass.SMALL,
-            });
+                schema: getFarmlandListingsSchema
+            }) as { object: GetFarmlandListingsContent };
 
-            elizaLogger.debug("Get farmland listings content:", content);
+            // Apply defaults
+            const requestContent = {
+                page: content.object?.page || DEFAULT_PAGE,
+                limit: Math.min(content.object?.limit || DEFAULT_LIMIT, MAX_LIMIT),
+                sortDesc: content.object?.sortDesc,
+                filter: content.object?.filter
+            };
 
-            if (!isGetFarmlandListingsContent(runtime, content)) {
+            elizaLogger.debug("Get farmland listings content:", requestContent);
+
+            if (!isGetFarmlandListingsContent(runtime, requestContent)) {
                 elizaLogger.error("Invalid content for GET_FARMLAND_LISTINGS action.");
                 callback({
                     text: "Unable to process farmland listings request. Invalid content provided.",
@@ -137,11 +162,11 @@ export default {
             }
 
             const response = await cosmoService.getListings('farmland', {
-                page: content.page,
-                limit: content.limit,
-                sortDesc: content.sortDesc,
+                page: requestContent.page,
+                limit: requestContent.limit,
+                sortDesc: requestContent.sortDesc,
                 filter: {
-                    ...(content.filter?.forSale !== undefined && { forSale: content.filter.forSale })
+                    ...(requestContent.filter?.forSale !== undefined && { forSale: requestContent.filter.forSale })
                 }
             }) as MarketListingsResponse<FarmlandListingItem>;
             elizaLogger.success("Successfully retrieved farmland listings");
@@ -159,7 +184,7 @@ export default {
 
             const filterInfo = [
                 'Filters:',
-                `Status: ${content.filter?.forSale ? 'For Sale Only' : 'All Listings'}`
+                `Status: ${requestContent.filter?.forSale ? 'For Sale Only' : 'All Listings'}`
             ].join('\n');
 
             callback({

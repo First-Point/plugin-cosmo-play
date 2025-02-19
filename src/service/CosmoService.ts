@@ -26,7 +26,8 @@ import {
     ListingsResponse,
     RoostrPriceResponse,
     FarmlandPriceResponse,
-    BlueprintPriceResponse
+    BlueprintPriceResponse,
+    BaseResponse
 } from "../types";
 import { CosmoConfig } from "../environment";
 
@@ -44,8 +45,7 @@ export class CosmoService {
     constructor(config: CosmoServiceConfig) {
         this.config = config;
         this.client = axios.create({
-            baseURL: config.apiBaseUrl,
-            timeout: config.timeout || 5000,
+            baseURL: config.apiBaseUrl + '/api',
             headers: {
                 Authorization: `Bearer ${config.apiToken}`,
                 "x-api-key": config.apiKey,
@@ -57,7 +57,7 @@ export class CosmoService {
     async getChiknDetails(chiknId: string): Promise<ChiknResponse> {
         try {
             const response = await this.client.get<ChiknResponse>(
-                `/api/item/chikn/${chiknId}`
+                `/item/chikn/${chiknId}`
             );
             return response.data;
         } catch (error) {
@@ -101,7 +101,7 @@ export class CosmoService {
     async getRoostrDetails(roostrId: string): Promise<RoostrResponse> {
         try {
             const response = await this.client.get<RoostrResponse>(
-                `/api/item/roostr/${roostrId}`
+                `/item/roostr/${roostrId}`
             );
             return response.data;
         } catch (error) {
@@ -112,7 +112,7 @@ export class CosmoService {
     async getFarmlandDetails(farmlandId: string): Promise<FarmlandResponse> {
         try {
             const response = await this.client.get<FarmlandResponse>(
-                `/api/item/farmland/${farmlandId}`
+                `/item/farmland/${farmlandId}`
             );
             return response.data;
         } catch (error) {
@@ -351,9 +351,9 @@ export class CosmoService {
         }
     }
 
-    async getFloors(type: 'roostr' | 'farmland' | 'blueprint'): Promise<FloorResponse> {
+    async getFloors<T extends BaseResponse>(type: 'roostr' | 'farmland' | 'blueprint'): Promise<T> {
         try {
-            const response = await this.client.get<FloorResponse>(`/chikn/floors/${type}`);
+            const response = await this.client.get<T>(`/chikn/floors/${type}`);
             return response.data;
         } catch (error) {
             throw this.handleError(error);
@@ -427,7 +427,6 @@ export function createCosmoService(config: CosmoConfig): CosmoService {
     return new CosmoService({
         apiBaseUrl: config.API_BASE_URL,
         apiToken: config.API_TOKEN,
-        apiKey: config.API_KEY,
-        timeout: 5000,
+        apiKey: config.API_TOKEN,
     });
 }

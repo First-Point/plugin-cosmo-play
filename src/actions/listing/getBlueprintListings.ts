@@ -13,6 +13,7 @@ import {
 import { validateCosmoConfig } from "../../environment";
 import { createCosmoService } from "../../service/CosmoService";
 import { MarketListingsResponse, BlueprintListingItem } from "../../types";
+import { z } from "zod";
 
 export interface GetBlueprintListingsContent {
     page?: number;
@@ -24,17 +25,32 @@ export interface GetBlueprintListingsContent {
     };
 }
 
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 16;
+const MAX_LIMIT = 100;
+
+const getBlueprintListingsSchema = z.object({
+    page: z.number().min(1).optional(),
+    limit: z.number().min(1).max(MAX_LIMIT).optional(),
+    sortDesc: z.enum(['price', 'date']).optional(),
+    filter: z.object({
+        rarity: z.enum(['common', 'rare', 'legendary', 'secret']).optional(),
+        forSale: z.boolean().optional()
+    }).optional()
+});
+
 function isGetBlueprintListingsContent(
     runtime: IAgentRuntime,
     content: any
 ): content is GetBlueprintListingsContent {
     elizaLogger.debug("Content for get blueprint listings", content);
-    return (
-        (content.page === undefined || typeof content.page === "number") &&
-        (content.limit === undefined || typeof content.limit === "number") &&
-        (content.sortDesc === undefined || typeof content.sortDesc === "string") &&
-        (content.filter === undefined || typeof content.filter === "object")
-    );
+    try {
+        getBlueprintListingsSchema.parse(content);
+        return true;
+    } catch (error) {
+        elizaLogger.error("Invalid blueprint listings content:", error);
+        return false;
+    }
 }
 
 const getBlueprintListingsTemplate = `Respond with a JSON markdown block containing only the extracted values.
@@ -121,11 +137,20 @@ export default {
                 runtime,
                 context,
                 modelClass: ModelClass.SMALL,
-            });
+                schema: getBlueprintListingsSchema
+            }) as { object: GetBlueprintListingsContent };
 
-            elizaLogger.debug("Get blueprint listings content:", content);
+            // Apply defaults
+            const requestContent = {
+                page: content.object?.page || DEFAULT_PAGE,
+                limit: Math.min(content.object?.limit || DEFAULT_LIMIT, MAX_LIMIT),
+                sortDesc: content.object?.sortDesc,
+                filter: content.object?.filter
+            };
 
-            if (!isGetBlueprintListingsContent(runtime, content)) {
+            elizaLogger.debug("Get blueprint listings content:", requestContent);
+
+            if (!isGetBlueprintListingsContent(runtime, requestContent)) {
                 elizaLogger.error("Invalid content for GET_BLUEPRINT_LISTINGS action.");
                 callback({
                     text: "Unable to process blueprint listings request. Invalid content provided.",
@@ -135,12 +160,12 @@ export default {
             }
 
             const response = await cosmoService.getListings('blueprint', {
-                page: content.page,
-                limit: content.limit,
-                sortDesc: content.sortDesc,
+                page: requestContent.page,
+                limit: requestContent.limit,
+                sortDesc: requestContent.sortDesc,
                 filter: {
-                    ...(content.filter?.rarity && { rarity: content.filter.rarity }),
-                    ...(content.filter?.forSale !== undefined && { forSale: content.filter.forSale })
+                    ...(requestContent.filter?.rarity && { rarity: requestContent.filter.rarity }),
+                    ...(requestContent.filter?.forSale !== undefined && { forSale: requestContent.filter.forSale })
                 }
             }) as MarketListingsResponse<BlueprintListingItem>;
             elizaLogger.success("Successfully retrieved blueprint listings");
@@ -151,8 +176,8 @@ export default {
 
             const filterInfo = [
                 'Filters:',
-                content.filter?.rarity ? `Rarity: ${content.filter.rarity}` : 'All Rarities',
-                `Status: ${content.filter?.forSale ? 'For Sale Only' : 'All Listings'}`
+                requestContent.filter?.rarity ? `Rarity: ${requestContent.filter.rarity}` : 'All Rarities',
+                `Status: ${requestContent.filter?.forSale ? 'For Sale Only' : 'All Listings'}`
             ].join('\n');
 
             callback({

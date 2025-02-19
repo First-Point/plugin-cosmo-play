@@ -12,17 +12,7 @@ import {
 } from "@elizaos/core";
 import { validateCosmoConfig } from "../../environment";
 import { createCosmoService } from "../../service/CosmoService";
-import { BlueprintPriceResponse } from "../../types";
-
-export interface GetBlueprintFloorsContent {}
-
-function isGetBlueprintFloorsContent(
-    runtime: IAgentRuntime,
-    content: any
-): content is GetBlueprintFloorsContent {
-    elizaLogger.debug("Content for get blueprint floors", content);
-    return true; // No content needed for this action
-}
+import { BlueprintPriceResponse, BlueprintFloorResponse } from "../../types";
 
 const getBlueprintFloorsTemplate = `Respond with a JSON markdown block containing only the extracted values.
 
@@ -77,24 +67,7 @@ export default {
                 template: getBlueprintFloorsTemplate,
             });
 
-            const content = await generateObject({
-                runtime,
-                context,
-                modelClass: ModelClass.SMALL,
-            });
-
-            elizaLogger.debug("Get blueprint floors content:", content);
-
-            if (!isGetBlueprintFloorsContent(runtime, content)) {
-                elizaLogger.error("Invalid content for GET_BLUEPRINT_FLOORS action.");
-                callback({
-                    text: "Unable to process blueprint floors request. Invalid content provided.",
-                    content: { error: "Invalid content" },
-                });
-                return false;
-            }
-
-            const response = await cosmoService.getBlueprintPrices();
+            const response = await cosmoService.getFloors<BlueprintFloorResponse>('blueprint');
             elizaLogger.success("Successfully retrieved blueprint floors");
 
             if (!response.success) {
