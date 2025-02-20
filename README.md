@@ -15,6 +15,14 @@ CosmoPlay is an intelligent AI gaming agent developed for [Chikn Farm](https://c
   <img width="1913" alt="image" src="https://github.com/user-attachments/assets/7c5063e4-92c7-4a39-a1b4-8346966cb0f3" />
 </details>
 
+- <details>
+  <summary>🔹 You can login Chikin Nft Game with wallet sign. (Click Here)</summary>
+  <img width="1542" alt="image" src="https://github.com/user-attachments/assets/ce3cc4c6-6494-4e17-9eb6-69deab97254a" />
+  <img width="1912" alt="image" src="https://github.com/user-attachments/assets/cf9637a7-525c-408a-af0c-1eeecd32029e" />
+
+</details>
+
+
 
 ## 🐔 Game Features Automated
 
