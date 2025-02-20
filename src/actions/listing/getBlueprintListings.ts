@@ -207,5 +207,37 @@ export default {
                 },
             }
         ],
+        [
+            {
+                user: "{{user1}}",
+                content: {
+                    text: "What legendary blueprints are available?",
+                },
+            }
+        ],
+        [
+            {
+                user: "{{user1}}",
+                content: {
+                    text: "Show me rare blueprints sorted by price descending",
+                },
+            }
+        ],
+        [
+            {
+                user: "{{user1}}",
+                content: {
+                    text: "Display all secret blueprints currently listed",
+                },
+            }
+        ],
+        [
+            {
+                user: "{{user1}}",
+                content: {
+                    text: "What blueprints are on the marketplace?",
+                },
+            }
+        ],
     ] as ActionExample[][],
 } as Action; 

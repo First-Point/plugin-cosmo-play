@@ -57,23 +57,21 @@ export interface WalletMetadata {
   export interface WalletNFTsResponse {
       success: boolean;
       data: {
-          items: Array<{
-              id: string;
-              tokenId: string;
-              type: string;
-              metadata: {
-                  name: string;
-                  description: string;
-                  image: string;
-                  attributes: Record<string, any>;
-              };
+          pageNumber: number;
+          firstPageNumber: number;
+          lastPageNumber: number;
+          dataCount: number;
+          totalCount: number;
+          data: Array<{
+              token: number;
+              owner: string;
+              rarity: string;
+              kg: string;
+              rank: string;
+              score: number;
+              floorPrice: number;
+              // ... other roostr fields
           }>;
-          pagination: {
-              page: number;
-              limit: number;
-              total: number;
-              pages: number;
-          };
       };
       metadata: {
           timestamp: string;
@@ -590,5 +588,70 @@ export interface WalletMetadata {
           secret: number;
           _overall: number;
           timestamp: string;
+      };
+  }
+  
+  export interface WalletFarmlandResponse {
+      success: boolean;
+      data: {
+          pageNumber: number;
+          firstPageNumber: number;
+          lastPageNumber: number;
+          dataCount: number;
+          totalCount: number;
+          data: Array<{
+              token: number;
+              owner: string;
+              size: string;
+              name: string;
+          }>;
+      };
+      metadata: {
+          timestamp: string;
+          network: string;
+          source: string;
+      };
+  }
+  
+  export interface WalletChiknsResponse {
+      success: boolean;
+      data: {
+          pageNumber: number;
+          firstPageNumber: number;
+          lastPageNumber: number;
+          dataCount: number;
+          totalCount: number;
+          data: Array<{
+              token: number;
+              owner: string;
+              rarity: string;
+              kg: string;
+              rank: string;
+              score: number;
+              floorPrice: number;
+          }>;
+      };
+      metadata: {
+          timestamp: string;
+          network: string;
+          source: string;
+      };
+  }
+  
+  export interface CurrencyReportResponse {
+      success: boolean;
+      data: {
+          quotes: {
+              AVAX: { quote: number; direction: string; };
+              EGG: { quote: number; direction: string; };
+              FEED: { quote: number; direction: string; };
+              FERT: { quote: number; direction: string; };
+              WORM: { quote: number; direction: string; };
+          };
+      };
+      metadata: {
+          timestamp: string;
+          network: string;
+          source: string;
       };
   } 

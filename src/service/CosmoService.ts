@@ -27,7 +27,8 @@ import {
     RoostrPriceResponse,
     FarmlandPriceResponse,
     BlueprintPriceResponse,
-    BaseResponse
+    BaseResponse,
+    CurrencyReportResponse
 } from "../types";
 import { CosmoConfig } from "../environment";
 
@@ -65,22 +66,9 @@ export class CosmoService {
         }
     }
 
-    async getWalletNFTs(
-        address: string,
-        type?: string,
-        page?: number,
-        limit?: number
-    ): Promise<WalletNFTsResponse> {
+    async getWalletNFTs<T extends { success: boolean; data: any }>(address: string, type: string): Promise<T> {
         try {
-            const queryParams = new Array<string>();
-            if (type) queryParams.push(`type=${encodeURIComponent(type)}`);
-            if (page) queryParams.push(`page=${encodeURIComponent(page)}`);
-            if (limit) queryParams.push(`limit=${encodeURIComponent(limit)}`);
-
-            const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
-            const response = await this.client.get<WalletNFTsResponse>(
-                `/wallet/${address}/${type || ''}${queryString}`
-            );
+            const response = await this.client.get<T>(`/chikn/wallet/${address}/${type}`);
             return response.data;
         } catch (error) {
             throw this.handleError(error);
@@ -222,7 +210,7 @@ export class CosmoService {
     async getWalletSummary(address: string): Promise<WalletSummaryResponse> {
         try {
             const response = await this.client.get<WalletSummaryResponse>(
-                `/wallet/${address}/summary`
+                `/chickn/wallet/${address}/summary`
             );
             return response.data;
         } catch (error) {
@@ -406,6 +394,15 @@ export class CosmoService {
     async getBlueprintPrices(): Promise<BlueprintPriceResponse> {
         try {
             const response = await this.client.get<BlueprintPriceResponse>('/chikn/blueprint/prices');
+            return response.data;
+        } catch (error) {
+            throw this.handleError(error);
+        }
+    }
+
+    async getCurrencyReport(): Promise<CurrencyReportResponse> {
+        try {
+            const response = await this.client.get<CurrencyReportResponse>('/chikn/wallet/currency-report');
             return response.data;
         } catch (error) {
             throw this.handleError(error);
