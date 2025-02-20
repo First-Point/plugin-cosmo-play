@@ -10,6 +10,10 @@ CosmoPlay is an intelligent AI gaming agent developed for [Chikn Farm](https://c
 <img width="1913" alt="image" src="https://github.com/user-attachments/assets/3bbe8a81-ac45-45af-bce9-8541c38201be" />
 
 
+- <details>
+  <summary>🔹 You can get floor prices of items. (Click Here)</summary>
+  <img width="1913" alt="image" src="https://github.com/user-attachments/assets/7c5063e4-92c7-4a39-a1b4-8346966cb0f3" />
+</details>
 
 
 ## 🐔 Game Features Automated
