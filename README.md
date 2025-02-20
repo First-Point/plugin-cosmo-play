@@ -7,7 +7,8 @@ CosmoPlay is an intelligent AI gaming agent developed for [Chikn Farm](https://c
 🔥 **Try it now**: [Live Demo](https://app.cosmohub.ai/cosmo-play)
 
 - You can list, filter, and purchase items in the Chikn NFT marketplace using the AI agent.
-<img width="969" alt="image" src="https://github.com/user-attachments/assets/38c1ebe7-cebd-49c0-ac82-d7f57d2a0ba0" />
+<img width="1913" alt="image" src="https://github.com/user-attachments/assets/3bbe8a81-ac45-45af-bce9-8541c38201be" />
+
 
 
 
