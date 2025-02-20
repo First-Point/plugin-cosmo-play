@@ -24,6 +24,18 @@ CosmoPlay is an intelligent AI gaming agent developed for [Chikn Farm](https://c
 - **Market Analysis**: Price trend monitoring
 - **Trading Opportunities**: Identify profitable trades
 
+
+## 🔐 Wallet & Security
+
+- **Self-Custody**: Users retain full control over their private keys; we do not store any private keys.
+- **Transaction Approval**: AI agents assist with transactions, but final approval is always required from the user.
+- **Security First**: Our system ensures that every transaction is authorized by the user’s wallet before execution.
+
+## 🔄 Transaction & Sign
+
+- **Marketplace Transactions**: CosmoPlay helps you submit transactions to purchase items from the Chikn Farm marketplace.
+- **CoqFight Authentication**: To participate in CoqFight battles, users need to sign transactions with their wallets.
+
 ## 🎯 AI Capabilities
 
 ### Smart Decision Making
