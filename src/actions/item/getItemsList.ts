@@ -202,17 +202,8 @@ export default {
                 return false;
             }
 
-            const itemsListText = response.data
-                .map(item => {
-                    const priceInfo = item.price ? ` - ${item.price} AVAX` : '';
-                    const saleStatus = item.forSale ? ' (For Sale)' : '';
-                    return `${item.name} (${item.type}, ${item.rarity})${priceInfo}${saleStatus}`;
-                })
-                .join('\n');
-
-
             callback({
-                text: `Items List:${itemsListText}`,
+                text: `Items List: `,
                 content: response,
             });
             return true;

@@ -171,24 +171,13 @@ export default {
             }) as MarketListingsResponse<FarmlandListingItem>;
             elizaLogger.success("Successfully retrieved farmland listings");
 
-            const listingsText = response.data
-                .map(listing => [
-                    `#${listing.token} - ${listing.name || 'Unnamed'}`,
-                    `Price: ${listing.salePrice} AVAX`,
-                    `Rarity: ${listing.rarity}`,
-                    `Size: ${listing.size} (${listing.bigness})`,
-                    `Worm in Land: ${listing.wormInLand.toLocaleString()}`,
-                    `Owner: ${listing.owner}`
-                ].join(' | '))
-                .join('\n');
-
             const filterInfo = [
                 'Filters:',
                 `Status: ${requestContent.filter?.forSale ? 'For Sale Only' : 'All Listings'}`
             ].join('\n');
 
             callback({
-                text: `Farmland Listings:\n${filterInfo}\n\n${listingsText}`,
+                text: `Farmland Listings:\n${filterInfo}`,
                 content: response,
             });
             return true;

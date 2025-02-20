@@ -170,10 +170,6 @@ export default {
             }) as MarketListingsResponse<RoostrListingItem>;
             elizaLogger.success("Successfully retrieved roostr listings");
 
-            const listingsText = response.data
-                .map(listing => `#${listing.token} - ${listing.name || 'Unnamed'} - ${listing.salePrice} AVAX - ${listing.rarity} - Owner: ${listing.owner}`)
-                .join('\n');
-
             const filterInfo = [
                 'Filters:',
                 requestContent.filter?.rarity ? `Rarity: ${requestContent.filter.rarity}` : 'All Rarities',
@@ -181,7 +177,7 @@ export default {
             ].join('\n');
 
             callback({
-                text: `Roostr Listings:\n${filterInfo}\n\n${listingsText}`,
+                text: `Roostr Listings:\n${filterInfo} `,
                 content: response,
             });
             return true;

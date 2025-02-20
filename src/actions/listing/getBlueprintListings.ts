@@ -170,10 +170,6 @@ export default {
             }) as MarketListingsResponse<BlueprintListingItem>;
             elizaLogger.success("Successfully retrieved blueprint listings");
 
-            const listingsText = response.data
-                .map(listing => `${listing.name || 'Unnamed'} - ${listing.salePrice} AVAX - ${listing.rarity} - Owner: ${listing.owner}`)
-                .join('\n');
-
             const filterInfo = [
                 'Filters:',
                 requestContent.filter?.rarity ? `Rarity: ${requestContent.filter.rarity}` : 'All Rarities',
@@ -181,7 +177,7 @@ export default {
             ].join('\n');
 
             callback({
-                text: `Blueprint Listings:\n${filterInfo}\n\n${listingsText}`,
+                text: `Blueprint Listings:\n${filterInfo}`,
                 content: response,
             });
             return true;
