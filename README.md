@@ -4,7 +4,11 @@
 
 CosmoPlay is an intelligent AI gaming agent developed for [Chikn Farm](https://chikn.farm/), a popular NFT game on the Avalanche network. Built as a plugin for the elizaOS AI framework, CosmoPlay automates and optimizes your Chikn Farm gaming experience. This project was created as part of the Avalanche Bounty9000 challenge to demonstrate the power of autonomous gaming agents.
 
-🔥 **Try it now**: [Live Demo](https://app.cosmohub.ai/eliza)
+🔥 **Try it now**: [Live Demo](https://app.cosmohub.ai/cosmo-play)
+
+- You can list, filter, and purchase items in the Chikn NFT marketplace using the AI agent.
+<img width="1886" alt="image" src="https://github.com/user-attachments/assets/aa486d99-ce58-42b9-82d9-8c6c4e62c075" />
+
 
 ## 🐔 Game Features Automated
 
