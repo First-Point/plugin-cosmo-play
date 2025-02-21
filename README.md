@@ -25,7 +25,13 @@ CosmoPlay is an intelligent AI gaming agent developed for [Chikn Farm](https://c
 - <details>
   <summary>🔹 You can get currency report for the game(Click Here)</summary>
    <img width="1902" alt="image" src="https://github.com/user-attachments/assets/99468e76-113e-4d70-adf5-504d11610ca6" />
+</details> 
+
+- <details>
+  <summary>🔹 You can list game items at the wallet address.(Click Here)</summary>
+   <img width="1914" alt="image" src="https://github.com/user-attachments/assets/452a61c3-8d7a-49c3-89f5-77b7ce06842e" />
 </details>
+
 
 
 
